@@ -122,9 +122,6 @@ modifier_phantom_ranger_multishot_reduced_damage = modifier_phantom_ranger_multi
     end,
     AllowIllusionDuplicate = function(self)
         return false
-    end,
-    DeclareFunctions = function(self)
-        return { MODIFIER_PROPERTY_DAMAGEOUTGOING_PERCENTAGE }
     end
 })
 
@@ -154,10 +151,6 @@ end
 --------------------------------------------------------------------------------
 
 
-function modifier_phantom_ranger_multishot_reduced_damage: GetModifierDamageOutgoing_Percentage()
-    return -100
-end
-
 LinkedModifiers["modifier_phantom_ranger_multishot_reduced_damage"] = LUA_MODIFIER_MOTION_NONE
 
 --------------------------------------------------------------------------------
@@ -185,7 +178,7 @@ function modifier_phantom_ranger_hunters_focus_buff:OnAttackLanded(keys)
 		local targetNumber = 0
 				
 		for _, enemy in pairs(enemies) do	
-			self.caster:AddNewModifier(owner, nil, "modifier_phantom_ranger_multishot_reduced_damage", {})
+			GameMode:ApplyBuff({ caster = self.caster, target = self.caster, ability = nil, modifier_name = "modifier_phantom_ranger_multishot_reduced_damage", duration = -1 })
 			self.caster:PerformAttack(enemy, true, true, true, true, true, false, false)
 			self.caster:RemoveModifierByName("modifier_phantom_ranger_multishot_reduced_damage")	
 			targetNumber = targetNumber + 1
