@@ -150,18 +150,7 @@ end
 
 --------------------------------------------------------------------------------
 
-
 LinkedModifiers["modifier_phantom_ranger_multishot_reduced_damage"] = LUA_MODIFIER_MOTION_NONE
-
---------------------------------------------------------------------------------
--- function modifier_phantom_ranger_hunters_focus_buff:GetModifierDamageOutgoing_Percentage()
--- 	if not IsServer() then return end
--- 	if self.multishotReducedDamage then
--- 		return -80 + (10 * self.talent37Level)
--- 	else 
--- 		return 0
--- 	end
--- end
 
 --------------------------------------------------------------------------------
 
@@ -178,9 +167,12 @@ function modifier_phantom_ranger_hunters_focus_buff:OnAttackLanded(keys)
 		local targetNumber = 0
 				
 		for _, enemy in pairs(enemies) do	
-			GameMode:ApplyBuff({ caster = self.caster, target = self.caster, ability = nil, modifier_name = "modifier_phantom_ranger_multishot_reduced_damage", duration = -1 })
+			local modifier = GameMode:ApplyBuff({ caster = self.caster, target = self.caster, ability = nil, modifier_name = "modifier_phantom_ranger_multishot_reduced_damage", duration = -1 })
+			print (modifier:GetSpellDamageBonus())
+			print (Units:GetSpellDamage(self.caster))
 			self.caster:PerformAttack(enemy, true, true, true, true, true, false, false)
 			self.caster:RemoveModifierByName("modifier_phantom_ranger_multishot_reduced_damage")	
+			print (Units:GetSpellDamage(self.caster))
 			targetNumber = targetNumber + 1
 			if targetNumber >= bonusTargets then
 				break
