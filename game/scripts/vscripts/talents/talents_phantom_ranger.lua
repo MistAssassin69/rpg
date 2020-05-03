@@ -107,35 +107,64 @@ end
 --------------------------------------------------------------------------------
 -- Multishot talent logic 
 
--- function modifier_phantom_ranger_hunters_focus_buff:GetModifierDamageOutgoing_Percentage()
--- 	if not IsServer() then return end
--- 	if self.multishotReducedDamage then
--- 		return -80 + (10 * self.talent37Level)
--- 	else 
--- 		return 0
--- 	end
--- end
+modifier_phantom_ranger_multishot_reduced_damage = modifier_phantom_ranger_multishot_reduced_damage or class({
+    IsDebuff = function(self)
+        return false
+    end,
+    IsHidden = function(self)
+        return true
+    end,
+    IsPurgable = function(self)
+        return false
+    end,
+    RemoveOnDeath = function(self)
+        return false
+    end,
+    AllowIllusionDuplicate = function(self)
+        return false
+    end,
+    DeclareFunctions = function(self)
+        return { MODIFIER_PROPERTY_DAMAGEOUTGOING_PERCENTAGE }
+    end
+})
 
-function modifier_phantom_ranger_hunters_focus_buff:OnTakeDamage(damageTable)
-	
+--------------------------------------------------------------------------------
+
+function modifier_phantom_ranger_multishot_reduced_damage:OnCreated()
 	if not IsServer() then return end
-	if (damageTable.damage > 0) then 
-		print (multishotReducedDamage)
-		if (damageTable.attacker:HasModifier("modifier_phantom_ranger_hunters_focus_buff") and multishotReducedDamage) then
-			damageTable.damage = damageTable.damage * (0.2 + (0.1 * TalentTree:GetHeroTalentLevel(damageTable.attacker, 37)))
-			print (damageTable.damage)
-			multishotReducedDamage = false
-			return damageTable
-		end
-	end
+	self.caster = self:GetParent()
+    self.talent37Level = TalentTree:GetHeroTalentLevel(self.caster, 37)
+    self.multishotReducedDamage = -0.8 + (0.1 * self.talent37Level)
 end
 
 --------------------------------------------------------------------------------
 
--- function modifier_phantom_ranger_hunters_focus_buff:GetSpellDamageBonus()
+function modifier_phantom_ranger_multishot_reduced_damage:GetAttackDamagePercentBonus()
+	if not IsServer() then return end
+	return self.multishotReducedDamage
+end
+
+--------------------------------------------------------------------------------
+
+function modifier_phantom_ranger_multishot_reduced_damage:GetSpellDamageBonus()
+	if not IsServer() then return end
+	return self.multishotReducedDamage
+end
+
+--------------------------------------------------------------------------------
+
+
+function modifier_phantom_ranger_multishot_reduced_damage: GetModifierDamageOutgoing_Percentage()
+    return -100
+end
+
+LinkedModifiers["modifier_phantom_ranger_multishot_reduced_damage"] = LUA_MODIFIER_MOTION_NONE
+
+--------------------------------------------------------------------------------
+-- function modifier_phantom_ranger_hunters_focus_buff:GetModifierDamageOutgoing_Percentage()
 -- 	if not IsServer() then return end
 -- 	if self.multishotReducedDamage then
--- 		return -0.8 + (0.1 * self.talent37Level)
+-- 		return -80 + (10 * self.talent37Level)
 -- 	else 
 -- 		return 0
 -- 	end
@@ -155,9 +184,10 @@ function modifier_phantom_ranger_hunters_focus_buff:OnAttackLanded(keys)
 		
 		local targetNumber = 0
 				
-		for _, enemy in pairs(enemies) do		
-			multishotReducedDamage = true				
+		for _, enemy in pairs(enemies) do	
+			self.caster:AddNewModifier(owner, nil, "modifier_phantom_ranger_multishot_reduced_damage", {})
 			self.caster:PerformAttack(enemy, true, true, true, true, true, false, false)
+			self.caster:RemoveModifierByName("modifier_phantom_ranger_multishot_reduced_damage")	
 			targetNumber = targetNumber + 1
 			if targetNumber >= bonusTargets then
 				break
@@ -251,13 +281,6 @@ LinkedModifiers["modifier_npc_dota_hero_drow_ranger_talent_36"] = LUA_MODIFIER_M
 --------------------------------------------------------------------------------
 -- Internal stuff
 
-multishotReducedDamage = false
-
 for LinkedModifier, MotionController in pairs(LinkedModifiers) do
     LinkLuaModifier(LinkedModifier, "talents/talents_phantom_ranger", MotionController)
-end
-
-if (IsServer()) then
-    GameMode.PreDamageEventHandlersTable = {}
-	GameMode:RegisterPreDamageEventHandler(Dynamic_Wrap(modifier_phantom_ranger_hunters_focus_buff, 'OnTakeDamage'))
 end
